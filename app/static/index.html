@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 销售线索打分助手</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      max-width: 720px; margin: 0 auto; padding: 32px 20px; color: #222;
+      background: #f7f8fa;
+    }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .sub { color: #888; font-size: 14px; margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    label { display: block; font-size: 13px; color: #555; margin: 14px 0 4px; }
+    input[type=text], textarea {
+      width: 100%; padding: 9px 11px; border: 1px solid #dcdfe6; border-radius: 8px;
+      font-size: 14px; font-family: inherit;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    .row { display: flex; gap: 16px; }
+    .row > div { flex: 1; }
+    .check { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
+    .check input { width: auto; }
+    button {
+      margin-top: 22px; width: 100%; padding: 12px; border: none; border-radius: 8px;
+      background: #2563eb; color: #fff; font-size: 15px; cursor: pointer;
+    }
+    button:disabled { background: #9db8f0; cursor: not-allowed; }
+    #result { margin-top: 24px; display: none; }
+    .score-box { display: flex; align-items: center; gap: 18px; }
+    .score-num { font-size: 46px; font-weight: 700; line-height: 1; }
+    .tier { padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; color: #fff; }
+    .tier.高 { background: #16a34a; }
+    .tier.中 { background: #d97706; }
+    .tier.低 { background: #9ca3af; }
+    .flag { color: #dc2626; font-weight: 600; font-size: 14px; margin-left: 8px; }
+    .reasons { margin: 16px 0 0; padding-left: 20px; }
+    .reasons li { margin: 4px 0; font-size: 14px; }
+    .next { margin-top: 14px; padding: 12px; background: #eff6ff; border-radius: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>AI 销售线索打分助手</h1>
+  <div class="sub">提交一条销售线索，自动打分（0-100）、分级，并给出理由和跟进建议。</div>
+
+  <div class="card">
+    <label>公司名称</label>
+    <input type="text" id="company" placeholder="如：星辰科技有限公司" />
+
+    <label>需求描述</label>
+    <textarea id="requirement" placeholder="客户想解决什么问题、要什么功能/服务"></textarea>
+
+    <div class="row">
+      <div>
+        <label>预算</label>
+        <input type="text" id="budget" placeholder="如：50万 / 不确定" />
+      </div>
+      <div>
+        <label>时间要求</label>
+        <input type="text" id="timeline" placeholder="如：本季度内上线" />
+      </div>
+    </div>
+
+    <label>联系方式</label>
+    <input type="text" id="contact" placeholder="电话 / 微信 / 邮箱" />
+
+    <label>备注</label>
+    <input type="text" id="notes" placeholder="其他补充信息" />
+
+    <div class="check">
+      <input type="checkbox" id="is_decision_maker" />
+      <label for="is_decision_maker" style="margin:0;">联系人是决策人（能拍板）</label>
+    </div>
+
+    <button id="submit" onclick="submitLead()">开始打分</button>
+  </div>
+
+  <div class="card" id="result">
+    <div class="score-box">
+      <div class="score-num" id="score">--</div>
+      <div>
+        <span class="tier" id="tier">-</span>
+        <span class="flag" id="flag"></span>
+      </div>
+    </div>
+    <ul class="reasons" id="reasons"></ul>
+    <div class="next" id="next"></div>
+  </div>
+
+  <script>
+    async function submitLead() {
+      const btn = document.getElementById('submit');
+      btn.disabled = true; btn.textContent = '打分中…';
+
+      const payload = {
+        company: document.getElementById('company').value,
+        requirement: document.getElementById('requirement').value,
+        budget: document.getElementById('budget').value,
+        timeline: document.getElementById('timeline').value,
+        contact: document.getElementById('contact').value,
+        notes: document.getElementById('notes').value,
+        is_decision_maker: document.getElementById('is_decision_maker').checked,
+      };
+
+      try {
+        const resp = await fetch('/api/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || '请求失败');
+
+        document.getElementById('score').textContent = data.score;
+        const tierEl = document.getElementById('tier');
+        tierEl.textContent = data.tier + '意向';
+        tierEl.className = 'tier ' + data.tier;
+        document.getElementById('flag').textContent =
+          data.need_immediate_follow_up ? '⚡ 需立即跟进' : '';
+
+        const ul = document.getElementById('reasons');
+        ul.innerHTML = '';
+        data.reasons.forEach(r => {
+          const li = document.createElement('li');
+          li.textContent = r;
+          ul.appendChild(li);
+        });
+        document.getElementById('next').textContent = '下一步：' + data.next_action;
+        document.getElementById('result').style.display = 'block';
+      } catch (e) {
+        alert('打分失败：' + e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '开始打分';
+      }
+    }
+  </script>
+</body>
+</html>

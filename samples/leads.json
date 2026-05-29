@@ -1,0 +1,29 @@
+[
+  {
+    "company": "星辰智能制造有限公司",
+    "requirement": "我们要上一套覆盖三个工厂的设备预测性维护系统，需要对接现有 MES，做实时告警和故障预测，已经立项。",
+    "budget": "80万",
+    "is_decision_maker": true,
+    "timeline": "本季度内必须签约，年底前上线",
+    "contact": "张总 13800001111，微信同号",
+    "notes": "我是公司 CTO，预算已经批了，正在对比 3 家供应商。"
+  },
+  {
+    "company": "蓝海电商工作室",
+    "requirement": "想做一个小程序商城，需要会员、下单和简单的分销功能，细节还在内部讨论。",
+    "budget": "初步预算 5 万左右，看方案再定",
+    "is_decision_maker": false,
+    "timeline": "希望下半年上线，目前在选型",
+    "contact": "李经理 13900002222，微信同号",
+    "notes": "我是项目对接人，方案定了再报老板批预算。"
+  },
+  {
+    "company": "",
+    "requirement": "你们这个能干嘛？随便问问。",
+    "budget": "",
+    "is_decision_maker": false,
+    "timeline": "",
+    "contact": "",
+    "notes": "在网上随便看到的"
+  }
+]
